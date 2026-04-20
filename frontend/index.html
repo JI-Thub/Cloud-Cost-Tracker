@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cloud Cost Tracker</title>
+</head>
+<body>
+
+    <h1>Cloud Cost Dashboard</h1>
+
+    <h2>Reference Pricing</h2>
+    <p><strong>Common AWS Service Costs (per hour):</strong></p>
+    <ul>
+        <li>EC2: $0.10/hour</li>
+        <li>S3: $0.02/hour</li>
+        <li>RDS: $0.15/hour</li>
+    </ul>
+
+    <h2>Add Resource</h2>
+    <input id="name" placeholder="Name">
+    <input id="resource_type" placeholder="Type (EC2, S3)">
+    <input id="hours" placeholder="Usage Hours">
+    <input id="cost" placeholder="Cost per Hour">
+    <button onclick="addResource()">Add</button>
+
+    <hr>
+
+    <h2>Total Cost</h2>
+    <button onclick="getCost()">Refresh Cost</button>
+    <pre id="costOutput"></pre>
+
+    <h2>Insights</h2>
+    <button onclick="getInsights()">Load Insights</button>
+    <pre id="insightsOutput"></pre>
+
+    <h2>Resources</h2>
+    <button onclick="getResources()">Load Resources</button>
+    <pre id="resourcesOutput"></pre>
+
+<script>
+const API_URL = "http://127.0.0.1:8000";
+
+// Add resource
+async function addResource() {
+    const name = document.getElementById("name").value.trim();
+    const resourceType = document.getElementById("resource_type").value.trim();
+    const hoursValue = document.getElementById("hours").value.trim();
+    const costValue = document.getElementById("cost").value.trim();
+
+    // Client-side validation
+    if (!name) {
+        alert("Please enter a resource name");
+        return;
+    }
+    if (!resourceType) {
+        alert("Please enter a resource type");
+        return;
+    }
+    if (!hoursValue || isNaN(parseFloat(hoursValue)) || parseFloat(hoursValue) <= 0) {
+        alert("Please enter a valid usage hours (positive number)");
+        return;
+    }
+    if (!costValue || isNaN(parseFloat(costValue)) || parseFloat(costValue) <= 0) {
+        alert("Please enter a valid cost per hour (positive number)");
+        return;
+    }
+
+    const data = {
+        name: name,
+        resource_type: resourceType,
+        usage_hours: parseFloat(hoursValue),
+        cost_per_hour: parseFloat(costValue)
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/resources/`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert("Resource added successfully!");
+            // Clear form
+            document.getElementById("name").value = "";
+            document.getElementById("resource_type").value = "";
+            document.getElementById("hours").value = "";
+            document.getElementById("cost").value = "";
+        } else {
+            const error = await response.json();
+            alert("Error adding resource: " + (error.detail || "Unknown error"));
+        }
+    } catch (error) {
+        alert("Network error: " + error.message);
+    }
+}
+
+// Get resources
+async function getResources() {
+    try {
+        const response = await fetch(`${API_URL}/resources/`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("resourcesOutput").innerText =
+                JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            document.getElementById("resourcesOutput").innerText =
+                `Error: ${error.detail || "Failed to load resources"}`;
+        }
+    } catch (error) {
+        document.getElementById("resourcesOutput").innerText =
+            `Network error: ${error.message}`;
+    }
+}
+
+// Get cost
+async function getCost() {
+    try {
+        const response = await fetch(`${API_URL}/cost/`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("costOutput").innerText =
+                JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            document.getElementById("costOutput").innerText =
+                `Error: ${error.detail || "Failed to calculate costs"}`;
+        }
+    } catch (error) {
+        document.getElementById("costOutput").innerText =
+            `Network error: ${error.message}`;
+    }
+}
+
+// Get insights
+async function getInsights() {
+    try {
+        const response = await fetch(`${API_URL}/insights/`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("insightsOutput").innerText =
+                JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            document.getElementById("insightsOutput").innerText =
+                `Error: ${error.detail || "Failed to load insights"}`;
+        }
+    } catch (error) {
+        document.getElementById("insightsOutput").innerText =
+            `Network error: ${error.message}`;
+    }
+}
+</script>
+
+</body>
+</html>
