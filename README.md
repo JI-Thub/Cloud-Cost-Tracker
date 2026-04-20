@@ -240,7 +240,3 @@ Delete `cloud_cost.db` and restart the application to reset the database.
 ## License
 
 Open source - feel free to use for learning and projects.
-
-## Author
-
-Created as a portfolio project to demonstrate full-stack development skills.
