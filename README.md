@@ -1,49 +1,65 @@
 # Cloud Cost Tracker
 
-A full-stack web application for tracking, analyzing, and optimizing cloud resource costs. Built with FastAPI, SQLAlchemy, and vanilla JavaScript.
+A full-stack web application for tracking, analyzing, and optimizing cloud resource costs. Built with a FastAPI backend and a React frontend.
 
 ## Features
 
-- **Add Resources**: Track cloud resources (EC2, S3, RDS, etc.) with custom pricing
+- **Add Resources**: Track cloud resources (EC2, S3, RDS, Lambda, CloudFront, etc.) with custom pricing
+- **Edit Resources**: Update name, type, usage hours, and cost per hour through a modal dialog
+- **Delete Resources**: Remove unwanted resources with confirmation
+- **Export Data**: Download resource data as CSV from the frontend
 - **Cost Calculation**: Automatically calculate total and per-resource costs
-- **Cost Insights**: Get analytics on resource usage patterns and cost recommendations
-- **Resource Management**: View all tracked resources with pagination
-- **Input Validation**: Client and server-side validation for data integrity
-- **Error Handling**: Comprehensive error handling with user-friendly messages
-- **Reference Pricing**: Display common AWS service costs as a guide
+- **Cost Insights**: Analytics on usage patterns with optimization recommendations
+- **Resource Management**: Browse and manage all tracked resources in the dashboard
+- **Input Validation**: Server-side validation ensures non-negative costs and valid usage values
+- **Error Handling**: Friendly error messaging for form and API failures
 
 ## Tech Stack
 
 ### Backend
-- **FastAPI** - Modern Python web framework with async support
+- **Python** - Server language
+- **FastAPI** - Web API framework
 - **SQLAlchemy** - ORM for database operations
-- **Pydantic** - Data validation using Python type hints
-- **SQLite** - Lightweight embedded database
+- **Pydantic** - Request and response validation
+- **SQLite** - Embedded database storage
 
 ### Frontend
-- **HTML5** - Semantic markup
-- **Vanilla JavaScript** - No framework dependencies
-- **Fetch API** - For HTTP requests
+- **React** - UI framework
+- **Axios** - HTTP client for API communication
+- **CSS3** - Styling with gradients, animations, and responsive layouts
+- **JavaScript ES6+** - Modern JavaScript features
 
 ## Project Structure
 
 ```
 Cloud Cost Tracker/
 ├── app/
-│   ├── __init__.py              # FastAPI app factory
+│   ├── __init__.py              # FastAPI app factory and CORS setup
 │   ├── database.py              # SQLAlchemy configuration
-│   ├── models.py                # SQLAlchemy ORM models
+│   ├── models.py                # ORM models
 │   ├── schemas.py               # Pydantic validation schemas
 │   ├── api/
 │   │   ├── __init__.py
 │   │   └── routes.py            # API endpoints
 │   └── services/
 │       ├── __init__.py
-│       └── cost_service.py      # Business logic for cost calculations
-├── frontend/
-│   └── index.html               # Web UI
+│       └── cost_service.py      # Cost calculation logic
+├── frontend/                    # React application
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/          # React components
+│   │   ├── services/            # API client
+│   │   ├── utils/               # Export utilities
+│   │   ├── App.js
+│   │   ├── App.css
+│   │   ├── index.js
+│   │   └── index.css
+│   ├── package.json
+│   ├── .gitignore
+│   └── .env.example
 ├── main.py                      # Application entry point
-├── cloud_cost.db                # SQLite database
+├── cloud_cost.db                # SQLite database file
 └── README.md                    # This file
 ```
 
@@ -51,42 +67,45 @@ Cloud Cost Tracker/
 
 ### Prerequisites
 - Python 3.9 or higher
-- pip (Python package installer)
+- Node.js and npm
 
-### 1. Clone the Repository
-```bash
+### Backend Setup
+
+1. **Create a virtual environment**
+```powershell
 cd "Cloud Cost Tracker"
-```
-
-### 2. Create Virtual Environment
-```bash
-# Windows
 python -m venv .venv
 .venv\Scripts\activate
-
-# macOS/Linux
-python -m venv .venv
-source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
-```bash
+2. **Install backend dependencies**
+```powershell
 pip install fastapi uvicorn sqlalchemy pydantic
 ```
 
-### 4. Run the Application
-```bash
-# Option 1: Using uvicorn directly
-uvicorn main:app --reload
-
-# Option 2: Using Python
+3. **Run the backend**
+```powershell
 python main.py
 ```
 
-The API will be available at `http://127.0.0.1:8000`
+The API will be available at `http://127.0.0.1:8000`.
 
-### 5. Open Frontend
-Open `frontend/index.html` in your web browser
+### Frontend Setup
+
+1. **Open a new terminal**
+
+2. **Install frontend dependencies**
+```powershell
+cd frontend
+npm install
+```
+
+3. **Start the React development server**
+```powershell
+npm start
+```
+
+The frontend will be available at `http://localhost:3000`.
 
 ## API Documentation
 
@@ -101,122 +120,66 @@ http://127.0.0.1:8000
 ```
 POST /resources/
 ```
-**Request Body:**
-```json
-{
-  "name": "Production Server",
-  "resource_type": "EC2",
-  "usage_hours": 100,
-  "cost_per_hour": 0.10
-}
-```
-**Response:** Resource object with ID
 
 #### Get All Resources
 ```
 GET /resources/?skip=0&limit=10
 ```
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "name": "Production Server",
-    "resource_type": "EC2",
-    "usage_hours": 100,
-    "cost_per_hour": 0.10
-  }
-]
+
+#### Update Resource
+```
+PUT /resources/{resource_id}
+```
+
+#### Delete Resource
+```
+DELETE /resources/{resource_id}
 ```
 
 #### Get Total Cost
 ```
 GET /cost/
 ```
-**Response:**
-```json
-{
-  "total_cost": 10.50,
-  "breakdown": [
-    {
-      "name": "Production Server",
-      "resource_type": "EC2",
-      "usage_hours": 100,
-      "cost_per_hour": 0.10,
-      "cost": 10.0
-    }
-  ]
-}
-```
 
 #### Get Insights
 ```
 GET /insights/
 ```
-**Response:**
-```json
-{
-  "total_resources": 3,
-  "total_cost": 25.50,
-  "average_cost_per_resource": 8.50,
-  "most_expensive_resource": {
-    "name": "Production DB",
-    "resource_type": "RDS"
-  },
-  "least_expensive_resource": {
-    "name": "Storage Bucket",
-    "resource_type": "S3"
-  },
-  "underutilized_resources": 1,
-  "recommendation": "Consider removing or downsizing low-usage resources"
-}
+
+#### Export Resources
 ```
-
-## Reference Pricing
-
-Common AWS service costs (per hour):
-- **EC2**: $0.10/hour
-- **S3**: $0.02/hour
-- **RDS**: $0.15/hour
-
-*Note: Actual pricing varies by region and instance type. Use these as guidelines.*
-
-## Usage Example
-
-1. **Add a Resource**
-   - Enter resource name, type, usage hours, and cost per hour
-   - Click "Add" button
-   - Confirmation message will appear
-
-2. **View Costs**
-   - Click "Refresh Cost" to see total and breakdown
-   - Results display in tabular JSON format
-
-3. **Get Insights**
-   - Click "Load Insights" for usage analytics
-   - Includes recommendations for optimization
-
-4. **List Resources**
-   - Click "Load Resources" to see all tracked items
-   - Supports pagination
+GET /export/resources/
+```
 
 ## Validation Rules
 
-### Resource Creation
-- **Name**: 1-100 characters, required
-- **Resource Type**: 1-50 characters, required
-- **Usage Hours**: Must be positive, max 8760 (hours in a year)
-- **Cost per Hour**: Must be positive
+### Resource Data
+- **Name**: required, 1-100 characters
+- **Resource Type**: required, 1-50 characters
+- **Usage Hours**: must be greater than 0 and no more than 8760
+- **Cost per Hour**: must be greater than or equal to 0
 
-## Error Handling
+## Running the Full App
 
-The application includes comprehensive error handling:
-- **Client-side validation**: Prevents invalid submissions
-- **Server-side validation**: Pydantic enforces schemas
-- **Database error handling**: Graceful rollback on failures
-- **Network error handling**: User-friendly error messages
+1. Start the backend at `http://127.0.0.1:8000`
+2. Start the frontend at `http://localhost:3000`
+3. Use the React UI for adding, editing, deleting, and exporting resources
+
+## Notes
+
+- The frontend connects to the backend at `http://localhost:8000` by default.
+- If you need a different backend URL, update `frontend/.env.local`.
+- The frontend uses CSV export utilities to download resource data directly from the browser.
 
 ## Future Enhancements
+
+- [ ] Authentication and user accounts
+- [ ] Historical cost tracking and trends
+- [ ] Budget alerts and notifications
+- [ ] Dark mode theme
+- [ ] Advanced filtering and search
+- [ ] Cost forecasting
+- [ ] Resource tagging and organization
 
 - [ ] User authentication and multi-user support
 - [ ] Database migrations using Alembic
